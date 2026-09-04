@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.coverage
+reference/
+*.gpkg
+!tests/fixtures/*.gpkg
+.ruff_cache/
+.DS_Store
