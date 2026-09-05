@@ -18,9 +18,7 @@ class ProfileRegistry:
         try:
             return self._profiles[land_code]
         except KeyError:
-            raise UnknownProfileError(
-                f"No StateProfile registered for land_code={land_code!r}."
-            )
+            raise UnknownProfileError(f"No StateProfile registered for land_code={land_code!r}.")
 
     def land_codes(self) -> list[str]:
         return sorted(self._profiles)

@@ -68,9 +68,7 @@ _INTERVENTION_FIELD_MAP: dict[str, str] = {
 
 
 class BrandenburgSchemaAdapter:
-    def parse(
-        self, path: Path
-    ) -> tuple[list[CompensationFeature], list[InterventionFeature]]:
+    def parse(self, path: Path) -> tuple[list[CompensationFeature], list[InterventionFeature]]:
         path = Path(path)
         sources = _locate_sources(path)
 
@@ -78,19 +76,15 @@ class BrandenburgSchemaAdapter:
         compensation_frame = _read_layer(*sources["Kompensation"])
 
         interventions = [
-            _row_to_intervention(row)
-            for row in intervention_frame.to_dict(orient="records")
+            _row_to_intervention(row) for row in intervention_frame.to_dict(orient="records")
         ]
         intervention_by_case_reference: dict[str, InterventionFeature] = {}
         for intervention in interventions:
             if intervention.case_reference:
-                intervention_by_case_reference.setdefault(
-                    intervention.case_reference, intervention
-                )
+                intervention_by_case_reference.setdefault(intervention.case_reference, intervention)
 
         compensations = [
-            _row_to_compensation(row)
-            for row in compensation_frame.to_dict(orient="records")
+            _row_to_compensation(row) for row in compensation_frame.to_dict(orient="records")
         ]
         for compensation in compensations:
             if compensation.case_reference:
@@ -144,9 +138,7 @@ def _match_layer(available: list[str], candidates: tuple[str, ...], path: Path) 
     for name in candidates:
         if name in available:
             return name
-    raise ValueError(
-        f"{path}: expected a layer named one of {candidates}, found {available!r}"
-    )
+    raise ValueError(f"{path}: expected a layer named one of {candidates}, found {available!r}")
 
 
 def _read_layer(path: Path, layer: str | None) -> gpd.GeoDataFrame:

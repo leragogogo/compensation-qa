@@ -1,22 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-if TYPE_CHECKING:
-    from shapely.strtree import STRtree
-
-    from ekisqa.model import CompensationFeature, InterventionFeature
-    from ekisqa.rules.base import Rule
+from ekisqa.model import CompensationFeature, InterventionFeature
+from ekisqa.register_data import RegisterSnapshot
+from ekisqa.routing import AxisDefinitions
+from ekisqa.rules.base import Rule
 
 
 @runtime_checkable
 class SchemaAdapter(Protocol):
-    def parse(
-        self, path: Path
-    ) -> tuple[list[CompensationFeature], list[InterventionFeature]]:
+    def parse(self, path: Path) -> tuple[list[CompensationFeature], list[InterventionFeature]]:
         """Read a file and return joined Compensation and Intervention features."""
         ...
 
@@ -26,21 +22,6 @@ class RegisterClientProtocol(Protocol):
     """Live access to a compensation register to check double allocation."""
 
     def fetch(self) -> RegisterSnapshot: ...
-
-
-@dataclass(slots=True)
-class RegisterSnapshot:
-    land_code: str
-    features: list[CompensationFeature]
-    fetch_timestamp: datetime
-    index: STRtree | None = None
-
-
-@runtime_checkable
-class AxisDefinitions(Protocol):
-    def evaluate(self, compensation: CompensationFeature) -> dict[str, Any]:
-        """Return this record's axis flags."""
-        ...
 
 
 @dataclass(slots=True)
