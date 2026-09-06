@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 /reference/
+/demo-reports/
 *.gpkg
 !tests/fixtures/*.gpkg
 .ruff_cache/
