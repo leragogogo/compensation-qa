@@ -9,7 +9,6 @@ from ekisqa.profiles.base import ProfileReferenceConfig, StateProfile
 from ekisqa.profiles.brandenburg.schema_adapter import BrandenburgSchemaAdapter
 from ekisqa.profiles.registry import default_registry
 from ekisqa.register_data import ReferenceData
-from ekisqa.routing import AxisCondition
 from ekisqa.rules.base import DatasetRef, Rule
 from ekisqa.rules.registry import CoreRuleRegistry, StageRunner
 from tests.fixtures import builders
@@ -29,7 +28,6 @@ def _synthetic_profile(**overrides) -> StateProfile:
         "crs": "EPSG:4326",
         "schema_adapter": _NoOpSchemaAdapter(),
         "rule_pack": [],
-        "axis_definitions": None,
         "register_client": None,
         "reference": ProfileReferenceConfig(),
     }
@@ -73,7 +71,13 @@ def test_valid_record_produces_no_error_or_warning_findings_for_brandenburg(
     findings = StageRunner(CoreRuleRegistry()).run(context)
 
     assert [f for f in findings if f.severity != Severity.INFO] == []
-    assert {f.rule_id for f in findings} == {"GEOSEM-01", "REF-02", "SPATIAL-04"}
+    assert {f.rule_id for f in findings} == {
+        "GEOSEM-01",
+        "REF-02",
+        "SPATIAL-01",
+        "SPATIAL-03",
+        "SPATIAL-04",
+    }
 
 
 def test_empty_registry_returns_no_findings_for_synthetic_profile() -> None:
@@ -158,88 +162,6 @@ def test_rules_run_in_stage_order_not_declaration_order() -> None:
     StageRunner(CoreRuleRegistry()).run(context)
 
     assert log == ["EARLY", "LATE"]
-
-
-class _StubAxisDefinitions:
-    def evaluate(self, compensation: CompensationFeature) -> dict:
-        return {"axis_c": compensation.compensation_type}
-
-
-class _AxisGatedRule(Rule):
-    id = "STUB-AXIS"
-    category = "X"
-    scope = "state"
-    entity = "compensation"
-    severity = Severity.INFO
-    stage = 1
-    axis_condition = AxisCondition(axis="axis_c", values=frozenset({"Landkreis"}))
-
-    def __init__(self) -> None:
-        self.seen: list[str] = []
-
-    def check(self, feature, ctx):
-        self.seen.append(feature.compensation_id)
-        return []
-
-
-def test_axis_condition_gates_rule_per_record_via_profile_axis_definitions() -> None:
-    rule = _AxisGatedRule()
-    profile = _synthetic_profile(
-        rule_pack=[rule], axis_definitions=_StubAxisDefinitions()
-    )
-    context = _context(
-        profile,
-        compensations=[
-            _compensation("K-1", compensation_type="Landkreis"),
-            _compensation("K-2", compensation_type="Land"),
-        ],
-    )
-
-    StageRunner(CoreRuleRegistry()).run(context)
-
-    assert rule.seen == ["K-1"]
-
-
-class _StubAuthorityAxisDefinitions:
-    def evaluate(self, record) -> dict:
-        return {"axis_authority": getattr(record, "category_zb", None)}
-
-
-class _AxisGatedInterventionRule(Rule):
-    id = "STUB-AXIS-INT"
-    category = "X"
-    scope = "state"
-    entity = "intervention"
-    severity = Severity.INFO
-    stage = 1
-    axis_condition = AxisCondition(
-        axis="axis_authority", values=frozenset({"Landkreis"})
-    )
-
-    def __init__(self) -> None:
-        self.seen: list[str] = []
-
-    def check(self, feature, ctx):
-        self.seen.append(feature.intervention_id)
-        return []
-
-
-def test_axis_condition_gates_intervention_rule_via_profile_axis_definitions() -> None:
-    rule = _AxisGatedInterventionRule()
-    profile = _synthetic_profile(
-        rule_pack=[rule], axis_definitions=_StubAuthorityAxisDefinitions()
-    )
-    context = _context(
-        profile,
-        interventions=[
-            _intervention("E-1", category_zb="Landkreis"),
-            _intervention("E-2", category_zb="Land"),
-        ],
-    )
-
-    StageRunner(CoreRuleRegistry()).run(context)
-
-    assert rule.seen == ["E-1"]
 
 
 class _RequiresLinkedInterventionRule(Rule):

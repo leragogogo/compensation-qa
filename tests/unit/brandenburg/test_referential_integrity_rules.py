@@ -37,7 +37,6 @@ def _ctx(compensations=(), reference=None, land_code="BB"):
         interventions=[],
         reference=reference if reference is not None else ReferenceData(),
         ekis_register=None,
-        axis_flags=None,
         check_date=CHECK_DATE,
         land_code=land_code,
     )

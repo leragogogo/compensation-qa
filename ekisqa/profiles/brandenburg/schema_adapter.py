@@ -89,7 +89,7 @@ class BrandenburgSchemaAdapter:
                 )
 
         compensations = [
-            _row_to_compensation(row)
+            row_to_compensation(row)
             for row in compensation_frame.to_dict(orient="records")
         ]
         for compensation in compensations:
@@ -237,7 +237,7 @@ def _as_multipolygon(geometry: BaseGeometry | None) -> BaseGeometry | None:
     return geometry
 
 
-def _row_to_compensation(row: dict[str, Any]) -> CompensationFeature:
+def row_to_compensation(row: dict[str, Any]) -> CompensationFeature:
     geometry = _as_multipolygon(row.pop("geometry", None))
     known, extra = _map_fields(row, _COMPENSATION_FIELD_MAP)
     compensation_id = known.pop("compensation_id", None)

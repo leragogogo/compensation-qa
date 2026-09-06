@@ -30,7 +30,6 @@ def _ctx(land_code="BB"):
         interventions=[],
         reference=ReferenceData(loaded={"state_boundary": BRANDENBURG_BOUNDARY}),
         ekis_register=None,
-        axis_flags=None,
         check_date=CHECK_DATE,
         land_code=land_code,
     )

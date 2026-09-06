@@ -6,13 +6,14 @@ from typing import Protocol, runtime_checkable
 
 from ekisqa.model import CompensationFeature, InterventionFeature
 from ekisqa.register_data import RegisterSnapshot
-from ekisqa.routing import AxisDefinitions
 from ekisqa.rules.base import Rule
 
 
 @runtime_checkable
 class SchemaAdapter(Protocol):
-    def parse(self, path: Path) -> tuple[list[CompensationFeature], list[InterventionFeature]]:
+    def parse(
+        self, path: Path
+    ) -> tuple[list[CompensationFeature], list[InterventionFeature]]:
         """Read a file and return joined Compensation and Intervention features."""
         ...
 
@@ -36,13 +37,12 @@ class ProfileReferenceConfig:
 
 @dataclass(slots=True)
 class StateProfile:
-    """One land's complete protocol: schema, rules, axes, reference data."""
+    """One land's complete protocol."""
 
     land_code: str
     land_name: str
     crs: str
     schema_adapter: SchemaAdapter
     rule_pack: list[Rule] = field(default_factory=list)
-    axis_definitions: AxisDefinitions | None = None
     register_client: RegisterClientProtocol | None = None
     reference: ProfileReferenceConfig = field(default_factory=ProfileReferenceConfig)

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from ekisqa.context import ValidationContext
 from ekisqa.model import Finding, Severity
-from ekisqa.routing import RoutingPreCheck
 from ekisqa.rules.base import DatasetRef, Rule
 
 
@@ -25,7 +24,6 @@ class StageRunner:
             [*self._core_registry.rules(), *context.profile.rule_pack],
             key=lambda rule: (rule.stage, rule.id),
         )
-        routing = RoutingPreCheck(context.profile.axis_definitions)
 
         findings: list[Finding] = []
         for rule in rules:
@@ -35,27 +33,22 @@ class StageRunner:
                 else context.interventions
             )
             for record in records:
-                findings.extend(self._check_one(rule, record, context, routing))
+                findings.extend(self._check_one(rule, record, context))
         return findings
 
-    def _check_one(
-        self, rule: Rule, record, context: ValidationContext, routing
-    ) -> list[Finding]:
-        if not routing.applies(rule.axis_condition, record):
-            return []
+    def _check_one(self, rule: Rule, record, context: ValidationContext) -> list[Finding]:
         if (
             rule.entity == "compensation"
             and rule.requires_linked_intervention
             and record.linked_intervention is None
         ):
             return [self._skipped(rule, context, "no linked intervention")]
-        record_context = context.for_record(routing.resolve(record))
 
         missing = self._missing_datasets(rule.required_datasets, context)
         if missing:
             return [self._skipped(rule, context, f"{', '.join(missing)} not available")]
 
-        return rule.check(record, record_context)
+        return rule.check(record, context)
 
     @staticmethod
     def _missing_datasets(

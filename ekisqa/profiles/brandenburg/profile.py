@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ekisqa.profiles.base import ProfileReferenceConfig, StateProfile
+from ekisqa.profiles.brandenburg.register_client import BrandenburgRegisterClient
 from ekisqa.profiles.brandenburg.rules.completeness import COMPLETENESS_RULES
 from ekisqa.profiles.brandenburg.rules.domain_validity import DOMAIN_VALIDITY_RULES
 from ekisqa.profiles.brandenburg.rules.geometric_semantic import (
@@ -60,8 +61,7 @@ def build_brandenburg_profile() -> StateProfile:
         crs=BRANDENBURG_CRS,
         schema_adapter=BrandenburgSchemaAdapter(),
         rule_pack=[rule_cls() for rule_cls in BRANDENBURG_RULE_PACK],
-        axis_definitions=None,
-        register_client=None,
+        register_client=BrandenburgRegisterClient(),
         reference=ProfileReferenceConfig(
             state_boundary_source="https://isk.geobasis-bb.de/ows/vg_wfs",
             district_boundary_source="https://sgx.geodatenzentrum.de/wfs_vg250",

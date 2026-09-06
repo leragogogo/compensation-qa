@@ -40,7 +40,6 @@ def _ctx(land_code="BB"):
         interventions=[],
         reference=ReferenceData(),
         ekis_register=None,
-        axis_flags=None,
         check_date=CHECK_DATE,
         land_code=land_code,
     )
