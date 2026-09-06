@@ -21,6 +21,8 @@ class DatasetRef:
 
 @runtime_checkable
 class RuleContext(Protocol):
+    compensations: list[CompensationFeature]
+    interventions: list[InterventionFeature]
     reference: ReferenceData
     ekis_register: RegisterSnapshot | None
     axis_flags: AxisFlags | None

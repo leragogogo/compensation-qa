@@ -58,17 +58,22 @@ def _intervention(intervention_id: str, **kwargs) -> InterventionFeature:
     return InterventionFeature(intervention_id=intervention_id, geometry=None, **kwargs)
 
 
-def test_empty_registry_returns_no_findings_for_brandenburg(tmp_path: Path) -> None:
+def test_valid_record_produces_no_error_or_warning_findings_for_brandenburg(
+    tmp_path: Path,
+) -> None:
     intervention, compensation = builders.make_valid_pair()
     path = builders.write_gpkg(tmp_path / "data.gpkg", intervention, compensation)
 
     profile = default_registry().resolve("BB")
     compensations, interventions = BrandenburgSchemaAdapter().parse(path)
-    context = _context(profile, compensations, interventions)
+    context = _context(
+        profile, compensations, interventions, check_date=date(2026, 6, 1)
+    )
 
     findings = StageRunner(CoreRuleRegistry()).run(context)
 
-    assert findings == []
+    assert [f for f in findings if f.severity != Severity.INFO] == []
+    assert {f.rule_id for f in findings} == {"GEOSEM-01", "REF-02", "SPATIAL-04"}
 
 
 def test_empty_registry_returns_no_findings_for_synthetic_profile() -> None:
@@ -274,7 +279,7 @@ def test_requires_linked_intervention_skips_unjoined_records_with_info_finding()
     assert len(skipped) == 1
     assert skipped[0].severity == Severity.INFO
     assert skipped[0].feature_id is None
-    assert "linked Eingriff" in skipped[0].explanation
+    assert "linked intervention" in skipped[0].explanation
 
 
 class _RequiresReferenceDatasetRule(Rule):

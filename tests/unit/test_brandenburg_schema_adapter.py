@@ -6,7 +6,11 @@ from pathlib import Path
 import pytest
 from shapely.geometry import MultiPolygon
 
-from ekisqa.profiles.brandenburg.schema_adapter import BrandenburgSchemaAdapter
+from ekisqa.profiles.brandenburg.schema_adapter import (
+    BRANDENBURG_CRS,
+    BrandenburgSchemaAdapter,
+    check_crs,
+)
 from tests.fixtures import builders
 
 
@@ -70,3 +74,23 @@ def test_orphan_compensation_has_no_linked_intervention(tmp_path: Path) -> None:
     assert len(interventions) == 1
     assert len(compensations) == 1
     assert compensations[0].linked_intervention is None
+
+
+def test_check_crs_passes_for_brandenburg_crs(tmp_path: Path) -> None:
+    intervention, compensation = builders.make_valid_pair()
+    path = _write_gpkg(tmp_path, intervention, compensation)
+
+    assert check_crs(path, land_code="BB") == []
+
+
+def test_check_crs_flags_mismatched_crs(tmp_path: Path) -> None:
+    intervention, compensation = builders.make_valid_pair()
+    intervention = intervention.set_crs("EPSG:4326", allow_override=True)
+    path = _write_gpkg(tmp_path, intervention, compensation)
+
+    findings = check_crs(path, land_code="BB")
+
+    assert len(findings) == 1
+    assert findings[0].rule_id == "TECH-01"
+    assert findings[0].land_code == "BB"
+    assert BRANDENBURG_CRS in findings[0].explanation
