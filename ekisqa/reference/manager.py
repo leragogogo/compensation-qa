@@ -35,6 +35,19 @@ class ReferenceDataManager:
         self._profile = profile
         self._dir = Path(base_dir) / profile.land_code
 
+    def status(self) -> dict[str, bool]:
+        config = self._profile.reference
+        checks = (
+            ("state_boundary", config.state_boundary_source),
+            ("district_boundaries", config.district_boundary_source),
+            ("protected_areas", config.protected_areas_source),
+        )
+        return {
+            name: (self._dir / f"{name}.gpkg").exists()
+            for name, configured in checks
+            if configured
+        }
+
     def update(self) -> list[str]:
         config = self._profile.reference
         self._dir.mkdir(parents=True, exist_ok=True)

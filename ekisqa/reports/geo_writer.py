@@ -25,7 +25,7 @@ def _feature_attributes(
     }
 
 
-def _group_findings_by_feature(
+def group_findings_by_feature(
     findings: list[Finding], rule_index: dict[str, Rule], entity: str
 ) -> dict[str, list[Finding]]:
     grouped: dict[str, list[Finding]] = {}
@@ -37,7 +37,7 @@ def _group_findings_by_feature(
     return grouped
 
 
-def _qa_columns(
+def qa_columns(
     feature_id: str | None, findings_by_feature: dict[str, list[Finding]]
 ) -> dict:
     matching = findings_by_feature.get(feature_id, []) if feature_id else []
@@ -61,7 +61,7 @@ def _build_geodataframe(
     rows = []
     for feature in features:
         row = _feature_attributes(feature)
-        row.update(_qa_columns(getattr(feature, id_field), findings_by_feature))
+        row.update(qa_columns(getattr(feature, id_field), findings_by_feature))
         row["land_code"] = metadata.land_code
         row["geometry"] = feature.geometry
         rows.append(row)
@@ -77,8 +77,8 @@ def _augmented_frames(
     crs: str,
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
     rule_index = index_rules(rules)
-    comp_findings = _group_findings_by_feature(findings, rule_index, "compensation")
-    int_findings = _group_findings_by_feature(findings, rule_index, "intervention")
+    comp_findings = group_findings_by_feature(findings, rule_index, "compensation")
+    int_findings = group_findings_by_feature(findings, rule_index, "intervention")
 
     compensation_gdf = _build_geodataframe(
         compensations, "compensation_id", comp_findings, metadata, crs

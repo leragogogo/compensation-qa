@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import replace
-from datetime import UTC, date, datetime
+from datetime import date
 from enum import Enum
 from pathlib import Path
 from typing import Annotated
@@ -9,16 +8,14 @@ from typing import Annotated
 import pyogrio.errors
 import typer
 
-from ekisqa.context import ValidationContext
 from ekisqa.model import Severity
+from ekisqa.pipeline import run_validation
 from ekisqa.profiles.registry import UnknownProfileError, default_registry
 from ekisqa.reference.manager import ReferenceDataManager
 from ekisqa.reports.geo_writer import write_geojson, write_geopackage
 from ekisqa.reports.html_writer import write_html
 from ekisqa.reports.json_writer import write_json
 from ekisqa.reports.metadata import ReportMetadata
-from ekisqa.rules.core import CORE_RULES
-from ekisqa.rules.registry import CoreRuleRegistry, StageRunner
 
 app = typer.Typer(help="EKIS QA command-line tool.")
 
@@ -80,7 +77,8 @@ def validate(
         typer.Option(
             "--output",
             "-o",
-            help="Where to place the report.",
+            help="Where to write the report. Required for gpkg/geojson; "
+            "for json/html, defaults to stdout.",
         ),
     ] = None,
     check_date_str: Annotated[
@@ -95,96 +93,52 @@ def validate(
         ),
     ] = False,
 ) -> None:
-    try:
-        profile = default_registry().resolve(state)
-    except UnknownProfileError as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=2) from exc
-
-    try:
-        compensations, interventions = profile.schema_adapter.parse(file)
-    except (FileNotFoundError, ValueError, pyogrio.errors.DataSourceError) as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=2) from exc
-
+    check_date = None
     if check_date_str:
         try:
             check_date = date.fromisoformat(check_date_str)
         except ValueError as exc:
             typer.echo(f"Invalid --check-date: {check_date_str!r}", err=True)
             raise typer.Exit(code=2) from exc
-    else:
-        check_date = datetime.now(UTC).date()
 
-    core_rules = [rule_cls() for rule_cls in CORE_RULES]
-
-    if rules:
-        requested = {name.strip() for name in rules.split(",") if name.strip()}
-        available = {rule.category for rule in [*core_rules, *profile.rule_pack]}
-        unknown = requested - available
-        if unknown:
-            noun = "category" if len(unknown) == 1 else "categories"
-            typer.echo(
-                f"Unknown rule {noun}: {', '.join(sorted(unknown))}. "
-                f"Available: {', '.join(sorted(available))}",
-                err=True,
-            )
-            raise typer.Exit(code=2)
-        core_rules = [rule for rule in core_rules if rule.category in requested]
-        profile = replace(
-            profile,
-            rule_pack=[
-                rule for rule in profile.rule_pack if rule.category in requested
-            ],
+    try:
+        run = run_validation(
+            file=file,
+            state=state,
+            rules=rules,
+            check_date=check_date,
+            live_register=live_register,
         )
+    except UnknownProfileError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=2) from exc
+    except (FileNotFoundError, ValueError, pyogrio.errors.DataSourceError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=2) from exc
 
-    ekis_register = None
-    if live_register:
-        if profile.register_client is None:
-            typer.echo(
-                f"--live-register requested but {state} has no register client configured; "
-                "skipping.",
-                err=True,
-            )
-        else:
-            ekis_register = profile.register_client.fetch()
-
-    context = ValidationContext(
-        profile=profile,
-        compensations=compensations,
-        interventions=interventions,
-        check_date=check_date,
-        reference=ReferenceDataManager(profile).load(),
-        ekis_register=ekis_register,
-    )
-
-    findings = StageRunner(CoreRuleRegistry(rules=core_rules)).run(context)
-    active_rules = [*core_rules, *profile.rule_pack]
-
-    metadata = ReportMetadata(
-        land_code=profile.land_code,
-        check_date=check_date,
-        register_fetch_timestamp=(
-            ekis_register.fetch_timestamp if ekis_register else None
-        ),
-    )
+    if run.live_register_skipped:
+        typer.echo(
+            f"--live-register requested but {state} has no register client configured; "
+            "skipping.",
+            err=True,
+        )
 
     _write_report(
         format,
-        findings,
-        compensations,
-        interventions,
-        active_rules,
-        metadata,
-        profile.crs,
+        run.findings,
+        run.compensations,
+        run.interventions,
+        run.rules,
+        run.metadata,
+        run.profile.crs,
         output,
     )
 
-    error_count = sum(1 for f in findings if f.severity == Severity.ERROR)
-    warning_count = sum(1 for f in findings if f.severity == Severity.WARNING)
-    info_count = sum(1 for f in findings if f.severity == Severity.INFO)
+    error_count = sum(1 for f in run.findings if f.severity == Severity.ERROR)
+    warning_count = sum(1 for f in run.findings if f.severity == Severity.WARNING)
+    info_count = sum(1 for f in run.findings if f.severity == Severity.INFO)
     typer.echo(
-        f"{len(findings)} findings: {error_count} errors, {warning_count} warnings, "
+        f"{len(run.findings)} finding(s): {error_count} error(s), {warning_count} warning(s), "
         f"{info_count} info.",
         err=True,
     )
@@ -201,10 +155,6 @@ def _write_report(
     crs: str,
     output: Path | None,
 ) -> None:
-    if output is None:
-        typer.echo(f"--output is required for --format {format.value}.", err=True)
-        raise typer.Exit(code=2)
-
     if format in (ReportFormat.JSON, ReportFormat.HTML):
         content = (
             write_json(findings, metadata)
@@ -217,6 +167,10 @@ def _write_report(
             output.write_text(content)
             typer.echo(f"Wrote {output}", err=True)
         return
+
+    if output is None:
+        typer.echo(f"--output is required for --format {format.value}.", err=True)
+        raise typer.Exit(code=2)
 
     if format == ReportFormat.GPKG:
         write_geopackage(
