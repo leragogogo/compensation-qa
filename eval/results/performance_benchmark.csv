@@ -1,0 +1,40 @@
+scenario,phase,seconds
+"n=1, live_register=False",parse,0.0061
+"n=1, live_register=False",reference_load,0.0258
+"n=1, live_register=False",register_fetch,0.0
+"n=1, live_register=False",rules,0.0027
+"n=1, live_register=False",report_json,0.0001
+"n=1, live_register=False",report_html,0.0
+"n=1, live_register=False",report_geojson,0.006
+"n=1, live_register=False",report_gpkg,0.0079
+"n=1, live_register=False",total,0.0487
+"n=1, live_register=True",parse,0.0042
+"n=1, live_register=True",reference_load,0.011
+"n=1, live_register=True",register_fetch,8.39
+"n=1, live_register=True",rules,0.0029
+"n=1, live_register=True",report_json,0.0
+"n=1, live_register=True",report_html,0.0
+"n=1, live_register=True",report_geojson,0.0043
+"n=1, live_register=True",report_gpkg,0.0088
+"n=1, live_register=True",total,8.4212
+"n=50, live_register=False",parse,0.0053
+"n=50, live_register=False",reference_load,0.0112
+"n=50, live_register=False",register_fetch,0.0
+"n=50, live_register=False",rules,0.0487
+"n=50, live_register=False",report_json,0.0003
+"n=50, live_register=False",report_html,0.0002
+"n=50, live_register=False",report_geojson,0.0059
+"n=50, live_register=False",report_gpkg,0.0087
+"n=50, live_register=False",total,0.0804
+"n=50, live_register=True",parse,0.005
+"n=50, live_register=True",reference_load,0.0109
+"n=50, live_register=True",register_fetch,8.5422
+"n=50, live_register=True",rules,0.0557
+"n=50, live_register=True",report_json,0.0002
+"n=50, live_register=True",report_html,0.0001
+"n=50, live_register=True",report_geojson,0.0058
+"n=50, live_register=True",report_gpkg,0.0088
+"n=50, live_register=True",total,8.6286
+"n=17774 (register-only, dataset-level rules, no report gen)",register_fetch,8.5
+"n=17774 (register-only, dataset-level rules, no report gen)",rules,731.4
+"n=17774 (register-only, dataset-level rules, no report gen)",total,739.9

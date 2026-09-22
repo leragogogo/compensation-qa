@@ -196,8 +196,10 @@ def _clean(value: Any) -> Any:
         return None
     if isinstance(value, float) and math.isnan(value):
         return None
-    if isinstance(value, str) and value.strip() == "":
-        return None
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped == "" or stripped.lower() == "null":
+            return None
     return value
 
 
