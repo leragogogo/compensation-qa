@@ -1,0 +1,51 @@
+{
+    "type": "FeatureCollection",
+    "name": "Kompensation",
+    "crs": {
+        "type": "name",
+        "properties": {
+            "name": "urn:ogc:def:crs:EPSG::25833"
+        }
+    },
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "Kompensation_ID": "K-defect",
+                "Art_der_Kompensation": "Realkompensation",
+                "Vorhabensbezeichnung": "Testvorhaben",
+                "Aktenzeichen_der_Zulassungsbehoerde": "AZ-2026-001",
+                "Bezeichnung_der_Kompensation": "Ausgleichsflaeche 1",
+                "Bezeichnung_des_Flaechenpools": null,
+                "Eingriff_ID": null
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            400100.0,
+                            5800100.0
+                        ],
+                        [
+                            400200.0,
+                            5800200.0
+                        ],
+                        [
+                            400200.0,
+                            5800100.0
+                        ],
+                        [
+                            400100.0,
+                            5800200.0
+                        ],
+                        [
+                            400100.0,
+                            5800100.0
+                        ]
+                    ]
+                ]
+            }
+        }
+    ]
+}

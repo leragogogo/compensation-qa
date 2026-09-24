@@ -1,0 +1,37 @@
+{
+    "type": "FeatureCollection",
+    "name": "Eingriff",
+    "crs": {
+        "type": "name",
+        "properties": {
+            "name": "urn:ogc:def:crs:EPSG::25833"
+        }
+    },
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "Eingriff_ID": "E-1",
+                "Vorhabenskategorie": "BImSchG",
+                "Vorhabensart": "Windenergieanlage",
+                "Vorhabensbezeichnung": "Testvorhaben",
+                "Kategorie_VT": "Neubau",
+                "Kategorie_ZB": "Landkreis",
+                "Zulassungsbehoerde": "Landkreis Potsdam-Mittelmark",
+                "Aktenzeichen_der_Zulassungsbehoerde": "AZ-2026-001",
+                "Weiteres_Aktenzeichen": null,
+                "Genehmigungsdatum": "2026-03-01",
+                "Landkreis_oder_kreisfreie_Stadt": "PM",
+                "Rechtsgrundlage": "BImSchG",
+                "Kurzbemerkung": null
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    400050.0,
+                    5800050.0
+                ]
+            }
+        }
+    ]
+}
