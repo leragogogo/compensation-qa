@@ -45,7 +45,7 @@ whichever you actually want to run.
    ```
 2. **Run a command**
    ```bash
-   ekis-qa validate --file demo-reports/samples/clean.gpkg --state BB --format html
+   ekis-qa validate --file demo-reports/samples/clean.gpkg --state BB --format html --output report.html
    ```
 
    `demo-reports/samples/` ships with the repo — see [Example workflow](#example-workflow) below for what else is in there.
@@ -126,7 +126,7 @@ ekis-qa update-reference --state BB --all
 ekis-qa validate --file export.gpkg --state BB --format gpkg --output report.gpkg
 
 # Quick human read of just the geometry rules, as HTML.
-ekis-qa validate --file export.gpkg --state BB --rules Geometry --format html --output report.html
+ekis-qa validate --file export.gpkg --state BB --format html --output report.html
 ```
 
 #### Mock files to try it on
