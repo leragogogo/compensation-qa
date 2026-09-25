@@ -20,9 +20,17 @@ Rule-based QA framework for German compensation-area registers, with Brandenburg
    cd compensation-qa
    ```
 2. Create and activate a virtual environment
+
+   **macOS/Linux:**
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
+   ```
+
+   **Windows:**
+   ```cmd
+   python -m venv .venv
+   .venv\Scripts\activate
    ```
 
 Both the CLI and the web application share the same engine package, so this
@@ -37,8 +45,10 @@ whichever you actually want to run.
    ```
 2. **Run a command**
    ```bash
-   ekis-qa validate --file fixture.gpkg --state BB --format html
+   ekis-qa validate --file demo-reports/samples/clean.gpkg --state BB --format html
    ```
+
+   `demo-reports/samples/` ships with the repo — see [Example workflow](#example-workflow) below for what else is in there.
 
    If successful you'll see, on stderr:
    ```console
@@ -68,7 +78,7 @@ Run this once (and re-run periodically to refresh the cache) before `validate`, 
 Runs the full rule pack (core geometry rules + the profile's own rules) against a register export and writes a findings report.
 
 ```bash
-ekis-qa validate --file fixture.gpkg --state BB --format html
+ekis-qa validate --file demo-reports/samples/clean.gpkg --state BB --format html
 ```
 
 | Option           | Default   | Description                                                                 |
@@ -117,6 +127,33 @@ ekis-qa validate --file export.gpkg --state BB --format gpkg --output report.gpk
 
 # Quick human read of just the geometry rules, as HTML.
 ekis-qa validate --file export.gpkg --state BB --rules Geometry --format html --output report.html
+```
+
+#### Mock files to try it on
+
+In `demo-reports/samples/` you can find moch files to test the tool against.
+
+| Path | What it is |
+|------|------------|
+| `demo-reports/samples/clean.gpkg` | A single valid Kompensation/Eingriff pair — passes with no errors. |
+| `demo-reports/samples/with-defect.gpkg` | The same pair, but with the Kompensation polygon corrupted (self-intersecting, zero-area ring) — exits 1. |
+| `demo-reports/samples/clean-json/` | The clean pair as a GeoJSON `Kompensation.json` + `Eingriff.json` sibling pair, instead of a GeoPackage. |
+| `demo-reports/samples/with-defect-json/` | The defective pair, same GeoJSON format. |
+
+```bash
+# Clean sample — exits 0.
+ekis-qa validate --file demo-reports/samples/clean.gpkg --state BB --format json
+
+# Defective sample — exits 1, findings include GEOM-02 (self-intersection) and GEOM-04 (zero area).
+ekis-qa validate --file demo-reports/samples/with-defect.gpkg --state BB --format json
+
+# Same defective data, but as a GeoJSON pair instead of a GeoPackage.
+# --file can point at either file in the pair — the adapter finds its sibling
+# (Kompensation*/Eingriff*) in the same directory automatically.
+ekis-qa validate --file demo-reports/samples/with-defect-json/Kompensation.json --state BB --format json
+
+# Human-readable HTML report from the defective sample.
+ekis-qa validate --file demo-reports/samples/with-defect.gpkg --state BB --format html --output report.html
 ```
 
 ## Web Application Setup
