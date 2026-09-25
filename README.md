@@ -16,7 +16,7 @@ Rule-based QA framework for German compensation-area registers, with Brandenburg
 
 1. Clone repository
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/leragogogo/compensation-qa.git
    cd compensation-qa
    ```
 2. Create and activate a virtual environment
