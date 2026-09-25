@@ -197,6 +197,20 @@ A FastAPI backend (`web/api/main.py`) plus a React/Vite frontend (`web/frontend/
 
 Currently the upload endpoint (`POST /api/validate`) only accepts `.gpkg` files — shapefile/GML/GeoJSON pairs aren't supported through the web UI yet, only via the CLI.
 
+## Troubleshooting
+
+### Windows: `CERTIFICATE_VERIFY_FAILED` when fetching reference data or the live register
+
+This can show up on Windows when running `ekis-qa update-reference`, `ekis-qa validate --live-register`, or the web app's "Refresh reference data" button. `geopandas` fetches URLs via Python's own `urllib`, so the request depends on Python's own SSL trust. On Windows, the official Python installer doesn't automatically wire that up, which is what causes this.
+
+Workaround that's been confirmed to fix it:
+
+```cmd
+pip install pip-system-certs
+```
+
+This patches Python's default SSL context to use the Windows certificate store.
+
 ## Run Tests
 
 ```bash
